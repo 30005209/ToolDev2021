@@ -4,7 +4,7 @@ import pygame, touchgui, touchguipalate, touchguiconf, math, os
 from pygame.locals import *
 from array2d import array2d
 
-#Screen / System  Info 
+#Screen / System  Info
 
 #display_width, display_height = 800, 600
 display_width, display_height = 1920, 1080
@@ -64,6 +64,7 @@ next_room = 1 #the next available room number to be used
 #Tile Info
 next_tile = wall_t
 last_pos = [] #last saved position
+start_coordinate = None
 
 #Pallets
 # preset to ensure conformity between glyph and button varients
@@ -110,7 +111,7 @@ def change_tile_wall (x,y):
 def fill_wall(x,y):
 	#if the x is the starting coord...
     if x == start_coordinate[0]:
-	#...treat y as the min and max based on the y above
+	#...treat y as the min and max based on the y above (iterate over y)
         y0 = min (y, start_coordinate[1])
         y1 = max (y, start_coordinate[1])
 
@@ -131,11 +132,19 @@ def fill_wall(x,y):
             change_tile_wall(i,y)
 
 #Set the current contents of a given button to a wall
-def create_wall (button, x, y):
-    global next_tile, cell_array
+def create_wall (button, x, y, tap):
+    global next_tile, cell_array, start_coordinate
     button.to_wall ()
     cell_array.set_contents (x + xoffset, y + yoffset, "#")
     next_tile = wall_t
+    #If the tile has been double tapped 
+    if tap == 2:
+	#set the start coordinate
+        start_coordinate = [x,y]
+    #If the start_coordinate has been set
+    if start_coordinate != None:
+	#fill all blank spaces between there and the new pos with walls
+        fill_wall(x,y)
 
 def match_line (x, y):
     return (last_pos != []) and ((last_pos[0] == x) or (last_pos[1] == y))
@@ -290,7 +299,7 @@ def get_next_room():
     return room
 
 #create a room
-def create_room(button, x,y):
+def create_room(button, x,y, tap):
     global next_tile, cell_array
 	#find appropriate information of room based on get_next_room func
     room = get_next_room()
@@ -327,7 +336,7 @@ def worldspawn (name, tap):
         next_tile = spawn_t
 
 #Create world spawn
-def create_spawn (button, x, y):
+def create_spawn (button, x, y, tap):
     global next_tile, cell_array
 	#convert to spawn button
     button.to_spawn ()
@@ -335,7 +344,7 @@ def create_spawn (button, x, y):
     cell_array.set_contents (x + xoffset, y + yoffset, "s")
 	#list it in the includes
     include_asset ('s', "worldspawn")
-	#Set the next to a blank - plays should have only added one spawn and it 
+	#Set the next to a blank - plays should have only added one spawn and it
 	# is unlikely to be a correct guess if a random tile is chosen to be next - blank is safest
     next_tile = blank_t
 
@@ -343,7 +352,7 @@ def create_spawn (button, x, y):
 
 def event_test (event):
 	#Should a keydown be present and the escape key be one of them
-    if (event.type == KEYDOWN) and (event.key == K_ESCAPE):	
+    if (event.type == KEYDOWN) and (event.key == K_ESCAPE):
 	#quit
         myquit (None)
 	#If any other user event is done add it
@@ -361,7 +370,7 @@ def myquit (name = None, tap = 1):
 
 #File Defs
 
-#Run the d3 shell script 
+#Run the d3 shell script
 #	due to the engine from ID we are also able to queue commands such as launching the tiny.map
 #	also triggers the launching of chisel
 def dmap():
@@ -374,7 +383,7 @@ def exec_doom_map():
 def mydoom3 (param, tap):
     pygame.display.update() #flush all changes
     pygame.time.delay(toggle_delay * 2) #pause
-    try_export(os.getcwd(), current_map_name) #export a test.txt file 
+    try_export(os.getcwd(), current_map_name) #export a test.txt file
     pygame.quit() #shutdown pygame
     dmap() #run chisel and dmap doom3 compile
     exec_doom_map() #now run doom3
@@ -478,7 +487,7 @@ def read_floor (lines):
                 seen_start = True
 		#If you have found the start of the line
             if seen_start:
-		#add a line of buttons 
+		#add a line of buttons
                 add_xaxis (line, y, ypos)
 		#increment the number of rows
                 y+=1
@@ -563,7 +572,7 @@ def hellknight (name, tap):
     if tap == 1:
         next_tile = hell_t
 
-def create_hell(button, x, y):
+def create_hell(button, x, y, tap):
     global next_tile, cell_array
     button.to_hell()
     cell_array.set_contents (x + xoffset, y + yoffset, "H")
@@ -576,7 +585,7 @@ def tick (name, tap):
     if tap == 1:
         next_tile = tick_t
 
-def create_tick(button, x, y):
+def create_tick(button, x, y, tap):
     global next_tile, cell_array
     button.to_tick()
     cell_array.set_contents (x + xoffset, y + yoffset, "T")
@@ -661,19 +670,19 @@ def myzoom (is_larger, tap):
 
 def assets ():
     return [touchgui.image_tile (private_list ("hellknight"),
-                                 touchgui.posX (0.95), touchgui.posY (0.9),
+                                 touchgui.posX (0.95), touchgui.posY (0.5),
                                  100, 100, hellknight),
             touchgui.image_tile (private_list ("tick"),
-                                 touchgui.posX (0.95), touchgui.posY (0.8),
+                                 touchgui.posX (0.95), touchgui.posY (0.4),
                                  100, 100, tick),
             touchgui.image_tile (image_list (wall_image_name),
-                                 touchgui.posX (0.95), touchgui.posY (0.7),
+                                 touchgui.posX (0.0), touchgui.posY (0.5),
                                  100, 100, mywall),
             touchgui.image_tile (image_list (door_image_name),
-                                 touchgui.posX (0.95), touchgui.posY (0.6),
+                                 touchgui.posX (0.0), touchgui.posY (0.4),
                                  100, 100, mydoor),
             touchgui.image_tile (button_list ("trashcanOpen"),
-                                 touchgui.posX (0.95), touchgui.posY (0.5),
+                                 touchgui.posX (0.55), touchgui.posY (1.0),
                                  100, 100, mytrash)]
 
 def include_asset (asset, desc):
@@ -724,13 +733,13 @@ def get_cell (mouse):
     y -= yborder
     return int (x / cell_size), int (y / cell_size)
 
-def create_blank (button, x, y):
+def create_blank (button, x, y, tap):
     global next_tile, cell_array
     button.to_blank ()
     cell_array.set_contents (x + xoffset, y + yoffset, " ")
     next_tile = blank_t
 
-def create_door (button, x, y):
+def create_door (button, x, y, tap):
     global next_tile, cell_array
     button.to_door ()
     cell_array.set_contents (x + xoffset, y + yoffset, ".")
@@ -752,11 +761,12 @@ def car_cdr (l):
     return first, remainder
 
 
-def delete_coordinate(button, x,y):
+def delete_coordinate(button, x,y, tap):
     global next_tile, cell_array
     button.to_blank()
     ch = cell_array.get(x,y)
     exclude_asset(ch)
+    cell_array.set_contents(x + xoffset, y + yoffset, " ")
     next_tile = delete_t
 
 #
@@ -788,7 +798,7 @@ def cellback (param, tap):
     #gets cell pos (button)
     x, y = get_cell (mouse)
     button = button_array.get (x + xoffset, y + yoffset)
-    function_create[next_tile] (button, x, y)
+    function_create[next_tile] (button, x, y, tap)
 
 
 #Dictionary with associative function calls
