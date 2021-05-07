@@ -17,10 +17,10 @@ build: all
 
 all: doorh.png doorv.png doorh-bw.png doorv-bw.png hingeh.png \
      wallh.png wallv.png wallh-bw.png wallv-bw.png hellknight.png tick.png \
-     doom3.png rock1sid.png sb_rocket.png sb_nails.png num_colon.png \
+     doom3.png ammo_r.png sb_rocket.png sb_nails.png num_colon.png \
      wizwood1_4.png inv2_sshotgun.png inva1_nailgun.png inva1_rlaunch.png \
      inva1_srlaunch.png afloor3_1_gloss.png city1_7.png adoor.png \
-     city1_4_gloss.png city2_1.png targ.png
+     city1_4_gloss.png city2_1.png targ.png ammo_s.png
 
 .pnm.png:
 	pnmscale -xsize=100 -ysize=100 $< > t.pnm
@@ -40,6 +40,9 @@ adoor.png: $(srcdir)/images/adoor.jpg
 	convert -resize 100x100 $< $@
 
 targ.png: $(srcdir)/images/target.png
+	convert -resize 100x100 $< $@
+
+ammo_s.png: $(srcdir)/touchmap-extra2/sb_shells.png
 	convert -resize 100x100 $< $@
 
 city1_4_gloss.png: $(srcdir)/touchmap-extra2/city1_4_gloss.jpg
@@ -72,7 +75,7 @@ wizwood1_4.png: $(srcdir)/touchmap-extra2/wizwood1_4.jpg
 num_colon.png: $(srcdir)/touchmap-extra2/num_colon.png
 	convert -resize 100x100 $< $@
 
-rock1sid.png: $(srcdir)/touchmap-extra2/rock1sid.tga
+ammo_r.png: $(srcdir)/touchmap-extra2/rock1sid.tga
 	convert -resize 100x100 $< $@
 
 sb_rocket.png: $(srcdir)/touchmap-extra2/sb_rocket.png

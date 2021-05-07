@@ -48,7 +48,7 @@ cell_array = array2d (0, 0, " ")   #  the contents will be written to the file a
 button_array = array2d (0, 0, [None])  #  contains just the 2D array of cells (buttons) visible on the tablet
 
 #Enumerated Types - though python doesn't support enums, lists are functionaly equivilent for the purposes of this program
-blank_t, wall_t, door_t, spawn_t, hell_t, tick_t, room_t, delete_t = list(range(8))
+blank_t, wall_t, door_t, spawn_t, hell_t, tick_t, room_t, delete_t, ammo_s, ammo_r = list(range(10))
 
 #Asset Info
 asset_list = [] #Assets
@@ -173,6 +173,12 @@ class button:
         self._tile.set_images (image_list ("hellknight"))
     def to_tick (self):
         self._tile.set_images (image_list ("tick"))
+    def to_ammo_s (self):
+        self._tile.set_images (image_list ("ammo_s"))
+    def to_ammo_r (self):
+        self._tile.set_images (image_list ("ammo_r"))
+    #def to_rocketL (self):
+    #    self._tile.set_images (image_list ("rocketL"))
     def to_room (self, room):
         self._tile = touchgui.text_tile (pal_room[0], pal_room[1], pal_room[2], pal_room[3],
                                          room, self._size,
@@ -374,10 +380,12 @@ def myquit (name = None, tap = 1):
 #	due to the engine from ID we are also able to queue commands such as launching the tiny.map
 #	also triggers the launching of chisel
 def dmap():
+    #Make it run initially as a shell then a as a bash
     os.system('/bin/bash -c "d3 +dmap tiny.map +quit"')
 
 #Run doom3 and tiny.map within it
 def exec_doom_map():
+    #Make it run initially as a shell then a as a bash
     os.system('/bin/bash -c "d3 +map tiny.map"')
 
 def mydoom3 (param, tap):
@@ -558,10 +566,8 @@ def try_export (directory, map_name):
     os.chdir (directory)
     if r == 0:
         print ("all ok")
-        #buttons()[2].set_images (private_list ("buttonStart"))
     else:
         print("not ok")
-        #buttons()[2].set_images (private_list ("buttonStart"))
 
 
 #Spawnable Defs
@@ -591,6 +597,32 @@ def create_tick(button, x, y, tap):
     cell_array.set_contents (x + xoffset, y + yoffset, "T")
     include_asset ('T', "monster monster_demon_tick")
     next_tile = tick_t
+
+def ammo_s (name, tap):
+    global next_tile
+    pygame.display.update()
+    if tap == 1:
+        next_tile = ammo_s
+
+def create_ammo_s (button, x, y, tap):
+    global next_tile, cell_array
+    button.to_ammo_s()
+    cell_array.set_contents (x + xoffset, y + yoffset, "H")
+    include_asset ('H', "ammo_shells_large 32")
+    next_tile = ammo_s
+
+def ammo_r (name, tap):
+    global next_tile
+    pygame.display.update()
+    if tap == 1:
+        next_tile = ammo_r
+
+def create_ammo_r (button, x, y, tap):
+    global next_tile, cell_array
+    button.to_ammo_r()
+    cell_array.set_contents (x + xoffset, y + yoffset, "R")
+    include_asset ('R', "ammo ammo_rockets_large 16")
+    next_tile = ammo_r
 
 def mydoor (name, tap):
     global next_tile
@@ -681,6 +713,12 @@ def assets ():
             touchgui.image_tile (image_list (door_image_name),
                                  touchgui.posX (0.0), touchgui.posY (0.4),
                                  100, 100, mydoor),
+            touchgui.image_tile (private_list ("ammo_s"),
+                                 touchgui.posX (0.0), touchgui.posY (0.3),
+                                 100, 100, ammo_s),         
+	   touchgui.image_tile (private_list ("ammo_r"),
+                                 touchgui.posX (0.0), touchgui.posY (0.2),
+                                 100, 100, ammo_r),
             touchgui.image_tile (button_list ("trashcanOpen"),
                                  touchgui.posX (0.55), touchgui.posY (1.0),
                                  100, 100, mytrash)]
@@ -809,7 +847,10 @@ function_create = {blank_t:create_blank,
                    hell_t:create_hell,
                    tick_t:create_tick,
                    room_t:create_room,
-                   delete_t:delete_coordinate}
+                   delete_t:delete_coordinate,
+                   ammo_s:create_ammo_s,
+	           ammo_r:create_ammo_r}
+
 
 def main ():
     global players, grid, cell_size
